@@ -1,0 +1,89 @@
+\import Function ()
+\import HLevel
+\import Homotopy.Truncation
+\import Paths
+
+-- 4.2.1
+\class Precategory (A : \Type)
+  | mor : A -> A -> \Set
+  | ide (x : A) : mor x x
+  | \infixr 8 o {x y z : A} : mor y z -> mor x y -> mor x z
+  | id-left {x y : A} (f : mor x y) : ide _ o f = f
+  | id-right {x y : A} (f : mor x y) : f o ide _ = f
+  | o-assoc {x y z w : A} (f : mor z w) (g : mor y z) (h : mor x y) : (f o g) o h = f o (g o h)
+\func id {C : Precategory} {x : C} => ide x
+
+-- 4.2.2
+-- hPOV: the "size" issue becomes the "h-level" restriction, which is no longer an "issue"
+\instance Precategory-Set : Precategory \Set
+  | mor A B => A -> B
+  | ide _ => Function.id
+  | o => Function.o
+  | id-left _ => idp
+  | id-right _ => idp
+  | o-assoc _ _ _ => idp
+
+-- 4.2.3 is implicit in the definition
+
+-- 4.2.4
+\record Isomorphism {C : Precategory} (x y : C) (\classifying f : mor x y) {
+  \field g : mor y x
+  \property inv-left : g o f = id
+  \property inv-right : f o g = id
+} \where {
+  \func inv-unique {C : Precategory} {x y : C} {f : mor x y} (e : Isomorphism x y f) (e' : Isomorphism x y f) : e.g = e'.g =>
+    g              ==< inv (C.id-left g) >==
+    id o g         ==< pmap (`o g) (inv (e'.inv-left)) >==
+    (e'.g o f) o g ==< C.o-assoc _ _ _ >==
+    e'.g o (f o g) ==< pmap (e'.g o) (e.inv-right) >==
+    e'.g o id      ==< C.id-right e'.g >==
+    e'.g `qed
+  \use \level levelProp {C : Precategory} {x y : C} (f : mor x y) (e e' : Isomorphism x y f) : e = e' =>
+    \let t => inv-unique e e'
+    \in path (\lam i => \new Isomorphism x y f {
+      | g => t @ i
+      | inv-left => (pathInProp (\lam j => t @ j o f = id) e.inv-left e'.inv-left) @ i
+      | inv-right => (pathInProp (\lam j => f o t @ j = id) e.inv-right e'.inv-right) @ i
+    } )
+}
+\func \infix 1 ~= {C : Precategory} (x y : C) : \Set => Isomorphism x y
+
+\class Category \extends Precategory
+  | Iso->eq {x y : A} : x ~= y -> x = y
+
+-- 4.2.5
+\class Groupoid \extends Precategory
+  | is-Iso {x y : A} (f : mor x y) : Isomorphism x y f
+
+-- 4.2.6
+-- hPOV: this can be used as an alternative definition of groups
+\func Group' : \Type => Groupoid (\Sigma)
+-- TODO: define groups in the usual way, and prove the two definitions are equivalent
+
+-- 4.2.7
+\func DiscreteCategory (A : \Set) : Precategory A \cowith
+  | mor x y => x = y
+  | ide _ => idp
+  | o p q => q *> p
+  | id-left _ => idp
+  | id-right => idp_*>
+  | o-assoc p q r => inv (*>-assoc r q p)
+
+-- 4.2.8
+\class Functor (A B : Precategory) (\classifying F : A -> B)
+  | fmap {x y : A} (f : mor x y) : mor (F x) (F y)
+  | fmap-id (x : A) : fmap (ide x) = id
+  | fmap-o {x y z : A} (f : mor y z) (g : mor x y) : fmap (f o g) = fmap f o fmap g
+
+\func IdFunctor (A : Precategory) : Functor A A Function.id \cowith {
+  | fmap f => f
+  | fmap-id _ => idp
+  | fmap-o _ _ => idp
+}
+
+\func comp-functor {A B C : Precategory} (F : Functor B C) (G : Functor A B) : Functor A C (F.F Function.`o` G.F) \cowith {
+  -- FIXME: why the classifying field of Functor doesn't work?
+  | fmap f => F.fmap (G.fmap f)
+  | fmap-id x => pmap F.fmap (G.fmap-id x) *> F.fmap-id _
+  | fmap-o f g => pmap F.fmap (G.fmap-o f g) *> F.fmap-o _ _
+}
