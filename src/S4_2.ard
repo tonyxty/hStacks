@@ -4,13 +4,14 @@
 \import Paths
 
 -- 4.2.1
-\class Precategory (A : \Type)
+\class Precategory (A : \Type) {
   | mor : A -> A -> \Set
   | ide (x : A) : mor x x
   | \infixr 8 o {x y z : A} : mor y z -> mor x y -> mor x z
-  | id-left {x y : A} (f : mor x y) : ide _ o f = f
-  | id-right {x y : A} (f : mor x y) : f o ide _ = f
-  | o-assoc {x y z w : A} (f : mor z w) (g : mor y z) (h : mor x y) : (f o g) o h = f o (g o h)
+  \property id-left {x y : A} (f : mor x y) : ide _ o f = f
+  \property id-right {x y : A} (f : mor x y) : f o ide _ = f
+  \property o-assoc {x y z w : A} (f : mor z w) (g : mor y z) (h : mor x y) : (f o g) o h = f o (g o h)
+}
 \func id {C : Precategory} {x : C} => ide x
 
 -- 4.2.2
@@ -26,8 +27,8 @@
 -- 4.2.3 is implicit in the definition
 
 -- 4.2.4
-\record Isomorphism {C : Precategory} (x y : C) (\classifying f : mor x y) {
-  \field g : mor y x
+\record Isomorphism {C : Precategory} (x y : C) (f : mor x y) {
+  | g : mor y x
   \property inv-left : g o f = id
   \property inv-right : f o g = id
 } \where {
@@ -75,11 +76,10 @@
   | fmap-id (x : A) : fmap (ide x) = id
   | fmap-o {x y z : A} (f : mor y z) (g : mor x y) : fmap (f o g) = fmap f o fmap g
 
-\func IdFunctor (A : Precategory) : Functor A A Function.id \cowith {
+\func IdFunctor (A : Precategory) : Functor A A Function.id \cowith
   | fmap f => f
   | fmap-id _ => idp
   | fmap-o _ _ => idp
-}
 
 \func comp-functor {A B C : Precategory} (F : Functor B C) (G : Functor A B) : Functor A C (F.F Function.`o` G.F) \cowith {
   -- FIXME: why the classifying field of Functor doesn't work?
