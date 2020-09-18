@@ -28,23 +28,23 @@
 
 -- 4.2.4
 \record Isomorphism {C : Precategory} (x y : C) (f : mor x y) {
-  | g : mor y x
-  \property inv-left : g o f = id
-  \property inv-right : f o g = id
+  | f^-1 : mor y x
+  \property inv-left : f^-1 o f = id
+  \property inv-right : f o f^-1 = id
 } \where {
-  \func inv-unique {C : Precategory} {x y : C} {f : mor x y} (e : Isomorphism x y f) (e' : Isomorphism x y f) : e.g = e'.g =>
-    g              ==< inv (C.id-left g) >==
-    id o g         ==< pmap (`o g) (inv (e'.inv-left)) >==
-    (e'.g o f) o g ==< C.o-assoc _ _ _ >==
-    e'.g o (f o g) ==< pmap (e'.g o) (e.inv-right) >==
-    e'.g o id      ==< C.id-right e'.g >==
-    e'.g `qed
+  \func inv-unique {C : Precategory} {x y : C} {f : mor x y} (e : Isomorphism x y f) (e' : Isomorphism x y f) : e.f^-1 = e'.f^-1 =>
+    f^-1                 ==< inv (C.id-left f^-1) >==
+    id o f^-1            ==< pmap (`o f^-1) (inv (e'.inv-left)) >==
+    (e'.f^-1 o f) o f^-1 ==< C.o-assoc _ _ _ >==
+    e'.f^-1 o (f o f^-1) ==< pmap (e'.f^-1 o) (e.inv-right) >==
+    e'.f^-1 o id         ==< C.id-right e'.f^-1 >==
+    e'.f^-1 `qed
   \use \level levelProp {C : Precategory} {x y : C} (f : mor x y) (e e' : Isomorphism x y f) : e = e' =>
-    \let t => inv-unique e e'
+    \let p => inv-unique e e'
     \in path (\lam i => \new Isomorphism x y f {
-      | g => t @ i
-      | inv-left => (pathInProp (\lam j => t @ j o f = id) e.inv-left e'.inv-left) @ i
-      | inv-right => (pathInProp (\lam j => f o t @ j = id) e.inv-right e'.inv-right) @ i
+      | f^-1 => p @ i
+      | inv-left => (pathInProp (\lam j => p @ j o f = id) e.inv-left e'.inv-left) @ i
+      | inv-right => (pathInProp (\lam j => f o p @ j = id) e.inv-right e'.inv-right) @ i
     } )
 }
 \func \infix 1 ~= {C : Precategory} (x y : C) : \Set => Isomorphism x y
