@@ -15,7 +15,7 @@
 \func id {C : Precategory} {x : C} => ide x
 
 -- 4.2.2
--- hPOV: the "size" issue becomes the "h-level" restriction, which is no longer an "issue"
+-- hPOV: the "size" issue disappears due to the infinite hierarchy of p-levels
 \instance Precategory-Set : Precategory \Set
   | mor A B => A -> B
   | ide _ => Function.id
