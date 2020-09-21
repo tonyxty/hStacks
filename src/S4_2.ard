@@ -1,7 +1,9 @@
+\import Algebra.Group
 \import Function ()
 \import HLevel
 \import Homotopy.Truncation
 \import Paths
+\import src.Foundation.Set
 
 -- 4.2.1
 \class Precategory (A : \Type) {
@@ -48,18 +50,47 @@
     } )
 }
 \func \infix 1 ~= {C : Precategory} (x y : C) : \Set => Isomorphism x y
+\func isIsomorphism {C : Precategory} {x y : C} (f : mor x y) : \Prop => Isomorphism x y f
+\func iso-inv {C : Precategory} {x y : C} (iso : Isomorphism x y) : Isomorphism y x \cowith
+  | f => iso.f^-1
+  | f^-1 => iso.f
+  | inv-left => iso.inv-right
+  | inv-right => iso.inv-left
 
 \class Category \extends Precategory
   | Iso->eq {x y : A} : x ~= y -> x = y
 
 -- 4.2.5
 \class Groupoid \extends Precategory
-  | is-Iso {x y : A} (f : mor x y) : Isomorphism x y f
+  | isIso {x y : A} (f : mor x y) : isIsomorphism f
 
 -- 4.2.6
--- hPOV: this can be used as an alternative definition of groups
-\func Group' : \Type => Groupoid (\Sigma)
--- TODO: define groups in the usual way, and prove the two definitions are equivalent
+-- hPOV: this can be used as an alternative definition of groups; one might even argue that this is the more natural one
+\class Group' \extends Groupoid
+  | A => \Sigma
+\func Group->Group' (G : Group) : Group' \cowith
+  | mor _ _ => G
+  | ide _ => G.ide
+  | o x y => x G.* y
+  | id-left _ => G.ide-left
+  | id-right _ => G.ide-right
+  | o-assoc _ _ _ => G.*-assoc
+  | isIso x => \new Isomorphism _ _ _ {
+    | f^-1 => G.inverse x
+    | inv-left => G.inverse-left x
+    | inv-right => G.inverse-right x
+  }
+\func Group'->Group (G : Group') : Group \cowith
+  | E => G.mor () ()
+  | ide => G.ide ()
+  | * => G.o
+  | ide-left {_} => G.id-left _
+  | ide-right {_} => G.id-right _
+  | *-assoc {x} {y} {z} => o-assoc _ _ _
+  | inverse x => Isomorphism.f^-1 {isIso x}
+  | inverse-left x => Isomorphism.inv-left {isIso x}
+  | inverse-right x => Isomorphism.inv-right {isIso x}
+-- hPOV: one may proceed to show that in fact Group = Group' with univalence
 
 -- 4.2.7
 \func DiscreteCategory (A : \Set) : Precategory A \cowith
@@ -76,14 +107,373 @@
   | fmap-id (x : A) : fmap (ide x) = id
   | fmap-o {x y z : A} (f : mor y z) (g : mor x y) : fmap (f o g) = fmap f o fmap g
 
-\func IdFunctor (A : Precategory) : Functor A A Function.id \cowith
+\func functor-id (A : Precategory) : Functor A A Function.id \cowith
   | fmap f => f
   | fmap-id _ => idp
   | fmap-o _ _ => idp
 
-\func comp-functor {A B C : Precategory} (F : Functor B C) (G : Functor A B) : Functor A C (F.F Function.`o` G.F) \cowith {
-  -- FIXME: why the classifying field of Functor doesn't work?
+\func functor-comp {A B C : Precategory} (F : Functor B C) (G : Functor A B) : Functor A C (F.F Function.`o` G.F) \cowith {
+  -- Arend: why the classifying field of Functor doesn't work?
   | fmap f => F.fmap (G.fmap f)
   | fmap-id x => pmap F.fmap (G.fmap-id x) *> F.fmap-id _
   | fmap-o f g => pmap F.fmap (G.fmap-o f g) *> F.fmap-o _ _
 }
+
+
+-- 4.2.9
+\func isFaithful {A B : Precategory} (F : Functor A B) : \Prop => \Pi (x y : A) -> isInjective (F.fmap {x} {y})
+\func isFull {A B : Precategory} (F : Functor A B) : \Set => \Pi (x y : A) -> isSurjective (F.fmap {x} {y})
+\func isEssentiallySurjective {A B : Precategory} (F : Functor A B) => \Pi (y : B) -> \Sigma (x : A) (F.F x ~= y)
+
+-- 4.2.10
+-- TODO: these require a definition for subsets (and they look boring), leave them for now
+
+-- 4.2.11
+-- hPOV: this becomes a claim about p-levels, which is automatically inferred by Arend
+
+-- 4.2.12
+-- TODO: define group homomorphisms in the usual way and show the two definitions coincide
+\func GroupHom' (G H : Group') => Functor G H
+
+-- 4.2.13
+-- commutative triangle in a precategory
+\record CommTri {C : Precategory} (s m t : C) {
+  | f : mor m t
+  | g : mor s m
+  | h : mor s t
+  \property comm : f o g = h
+}
+\func commtri-g-id {C : Precategory} {s t : C} (f : mor s t) : CommTri s s t f id f \cowith
+  | comm => id-right f
+\func commtri-g-comp {C : Precategory} {l m r d : C} {p : mor m d} (c : CommTri m r d { | h => p } ) (c' : CommTri l m d { | f => p }) : CommTri l r d \cowith
+  | f => c.f
+  | g => c.g o c'.g
+  | h => c'.h
+  | comm => inv (o-assoc c.f c.g c'.g) *> pmap (`o c'.g) c.comm *> c'.comm
+
+\func commtri-g-id-left {C : Precategory} {s m t : C} (c : CommTri s m t) : commtri-g-comp (commtri-g-id c.f) c = {CommTri _ _ _ { | f => c.f | h => c.h }} c =>
+  \let p => id-left c.g
+  \in path (\lam i => \new CommTri s m t {
+    | f => c.f
+    | g => p @ i
+    | h => c.h
+    | comm => coe2 (c.f o (p @ __) = c.h) right comm i  -- hPOV: pathInProp can also be used, but this construction seems generalizable to higher categories
+  })
+\func commtri-g-id-right {C : Precategory} {s m t : C} (c : CommTri s m t) : commtri-g-comp c (commtri-g-id c.h) = {CommTri _ _ _ { | f => c.f | h => c.h }} c =>
+  \let p => id-right c.g
+  \in path (\lam i => \new CommTri s m t {
+    | f => c.f
+    | g => p @ i
+    | h => c.h
+    | comm => coe2 (c.f o (p @ __) = c.h) right comm i
+  })
+\func commtri-g-comp-assoc {C : Precategory} {l m n r d : C} {p : mor m d} {q : mor n d} (c : CommTri n r d { | h => q }) (c' : CommTri m n d { | f => q | h => p }) (c'' : CommTri l m d { | f => p }) :
+    commtri-g-comp (commtri-g-comp c c') c'' = commtri-g-comp c (commtri-g-comp c' c'') =>
+  \let p => o-assoc c.g c'.g c''.g
+  \in path (\lam i => \new CommTri l r d {
+    | f => c.f
+    | g => p @ i
+    | h => c''.h
+    | comm => coe (c.f o (p @ __) = c''.h) (CommTri.comm {commtri-g-comp (commtri-g-comp c c') c''}) i
+  })
+
+\func SliceOver \alias \infix 1 /* (C : Precategory) (x : C) : Precategory \cowith
+  | A => \Sigma (y : C) (mor y x)
+  | mor y y' => CommTri _ _ _ { | f => y'.2 | h => y.2 }
+  | ide y => commtri-g-id y.2
+  | o f f' => commtri-g-comp f f'
+  | id-left f => commtri-g-id-left f
+  | id-right f => commtri-g-id-right f
+  | o-assoc f g h => commtri-g-comp-assoc f g h
+\func SliceOver->C (C : Precategory) (x : C) : Functor (C /* x) C \cowith
+  | F y => y.1
+  | fmap c => CommTri.g {c}
+  | fmap-id _ => idp
+  | fmap-o _ _ => idp
+
+-- 4.2.14
+\func commtri-f-id {C : Precategory} {s t : C} (g : mor s t) : CommTri s t t id g g \cowith
+  | comm => id-left g
+\func commtri-f-comp {C : Precategory} {l m r u : C} {p : mor u m} (c : CommTri u m r { | g => p } ) (c' : CommTri u l m { | h => p }) : CommTri u l r \cowith
+  | f => c.f o c'.f
+  | g => c'.g
+  | h => c.h
+  | comm => (o-assoc c.f c'.f c'.g) *> pmap (c.f o) c'.comm *> c.comm
+
+\func commtri-f-id-left {C : Precategory} {s m t : C} (c : CommTri s m t) : commtri-f-comp (commtri-f-id c.h) c = {CommTri _ _ _ { | g => c.g | h => c.h }} c =>
+  \let p => id-left c.f
+  \in path (\lam i => \new CommTri s m t {
+    | f => p @ i
+    | g => c.g
+    | h => c.h
+    | comm => coe2 ((p @ __) o c.g = c.h) right comm i
+  })
+\func commtri-f-id-right {C : Precategory} {s m t : C} (c : CommTri s m t) : commtri-f-comp c (commtri-f-id c.g) = {CommTri _ _ _ { | g => c.g | h => c.h }} c =>
+  \let p => id-right c.f
+  \in path (\lam i => \new CommTri s m t {
+    | f => p @ i
+    | g => c.g
+    | h => c.h
+    | comm => coe2 ((p @ __) o c.g = h) right comm i
+  })
+\func commtri-f-comp-assoc {C : Precategory} {l m n r u : C} {p : mor u m} {q : mor u n} (c : CommTri u n r { | g => q }) (c' : CommTri u m n { | g => p | h => q }) (c'' : CommTri u l m { | h => p }) :
+  commtri-f-comp (commtri-f-comp c c') c'' = commtri-f-comp c (commtri-f-comp c' c'') =>
+  \let p => o-assoc c.f c'.f c''.f
+  \in path (\lam i => \new CommTri u l r {
+    | f => p @ i
+    | g => c''.g
+    | h => c.h
+    | comm => coe ((p @ __) o c''.g = c.h) (CommTri.comm {commtri-f-comp (commtri-f-comp c c') c''}) i
+  })
+
+\func SliceUnder (C : Precategory) (x : C) : Precategory \cowith
+  | A => \Sigma (y : C) (mor x y)
+  | mor y y' => CommTri _ _ _ { | g => y.2 | h => y'.2 }
+  | ide y => commtri-f-id y.2
+  | o f f' => commtri-f-comp f f'
+  | id-left f => commtri-f-id-left f
+  | id-right f => commtri-f-id-right f
+  | o-assoc f g h => commtri-f-comp-assoc f g h
+
+\func \infix 1 */ {A : \Type} (x : A) (C : Precategory A) => SliceUnder C x
+\func SliceUnder->C (C : Precategory) (x : C) : Functor (x */ C) C \cowith
+  | F y => y.1
+  | fmap c => CommTri.f {c}
+  | fmap-id _ => idp
+  | fmap-o _ _ => idp
+
+-- 4.2.15
+\class NatTrans {A B : Precategory} (F G : Functor A B) (\classifying t : \Pi (x : A) -> mor (F.F x) (G.F x)) {
+  \property natural {x y : A} (f : mor x y) : G.fmap f o t x = t y o F.fmap f
+} \where {
+  -- Arend: (feature request) infer that properties are "irrelavant" when proving equality
+  \func equals {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : s.t = t.t) : s = t =>
+    path (\lam i => \new NatTrans F G {
+      | t => e @ i
+      | natural f => (pathInProp (\lam j => G.fmap f o (e @ j) _ = (e @ j) _ o F.fmap f) (s.natural f) (t.natural f)) @ i
+    })
+  -- this is more useful than above
+  \func equals' {A B : Precategory} {F G : Functor A B} {s t : NatTrans F G} (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
+    equals s t (funExt (\lam x => mor (F.F x) (G.F x)) s.t t.t e)
+}
+\func nat-trans-id {A B : Precategory} (F : Functor A B) : NatTrans F F \cowith
+  | t x => id
+  | natural f => id-right (fmap f) *> inv (id-left (fmap f))
+\func nat-trans-comp {A B : Precategory} {E F G : Functor A B} (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G \cowith
+  | t x => t.t x o s.t x
+  | natural f =>
+    -- the following paragraph looks evil
+    G.fmap f o t.t _ o s.t _   ==< inv (o-assoc _ _ _) >==
+    (G.fmap f o t.t _) o s.t _ ==< pmap (`o s.t _) (t.natural f) >==
+    (t.t _ o F.fmap f) o s.t _ ==< o-assoc _ _ _ >==
+    t.t _ o F.fmap f o s.t _   ==< pmap (t.t _ o) (s.natural f) >==
+    t.t _ o s.t _ o E.fmap f   ==< inv (o-assoc _ _ _) >==
+    (t.t _ o s.t _) o E.fmap f `qed
+
+\instance Precategory-Functor {A B : Precategory} : Precategory (Functor A B)
+  | mor F G => NatTrans F G
+  | ide F => nat-trans-id F
+  | o s t => nat-trans-comp s t
+  | id-left s => NatTrans.equals' (\lam x => id-left (NatTrans.t {s} x))
+  | id-right s => NatTrans.equals' (\lam x => id-right (NatTrans.t {s} x))
+  | o-assoc s t u => NatTrans.equals' (\lam x => o-assoc (NatTrans.t {s} x) (NatTrans.t {t} x) (NatTrans.t {u} x))
+
+-- the following lemma is very useful in dealing with isomorphisms between functors:
+-- a natural transformation is an isomorphism in this precategory iff it is a pointwise isomorphism
+\func pointwise->Isomorphism {A B : Precategory} {F G : Functor A B} (s : NatTrans F G) (i : \Pi (x : A) -> isIsomorphism (s.t x)) : isIsomorphism s =>
+  \let t => \new NatTrans G F {
+    | t x => Isomorphism.f^-1 {i x}
+    | natural {x} {y} f =>
+      \let | sx : Isomorphism => i x | sy : Isomorphism => i y
+           | p : (s.t y) o F.fmap f o sx.f^-1 = G.fmap f =>
+           (s.t y) o F.fmap f o sx.f^-1 ==< inv (o-assoc _ _ _) >==
+           (s.t y o F.fmap f) o sx.f^-1 ==< inv (pmap (`o sx.f^-1) (s.natural f)) >==
+           (G.fmap f o s.t x) o sx.f^-1 ==< o-assoc _ _ _ >==
+           G.fmap f o s.t x o sx.f^-1   ==< pmap (G.fmap f o) sx.inv-right >==
+           G.fmap f o id                ==< id-right _ >==
+           G.fmap f `qed
+      \in
+        F.fmap f o sx.f^-1                       ==< inv (id-left _) >==
+        id o F.fmap f o sx.f^-1                  ==< inv (pmap (`o F.fmap f o sx.f^-1) sy.inv-left) >==
+        (sy.f^-1 o (s.t y)) o F.fmap f o sx.f^-1 ==< o-assoc _ _ _ >==
+        sy.f^-1 o s.t y o F.fmap f o sx.f^-1     ==< pmap (sy.f^-1 o) p >==
+        sy.f^-1 o G.fmap f `qed
+  }
+  \in \new Isomorphism F G s {
+    | f^-1 => t
+    | inv-left => NatTrans.equals' (\lam x => Isomorphism.inv-left {i x})
+    | inv-right => NatTrans.equals' (\lam x => Isomorphism.inv-right {i x})
+  }
+\func Isomorphism->pointwise {A B : Precategory} {F G : Functor A B} (iso : Isomorphism F G) (x : A) : isIsomorphism (NatTrans.t {iso.f} x) =>
+  \let s : NatTrans F G => iso.f | t : NatTrans G F => iso.f^-1
+  \in \new Isomorphism _ _ (s.t x) {
+    | f^-1 => t.t x
+    | inv-left => pmap (\lam (u : NatTrans F F) => u.t x) iso.inv-left
+    | inv-right => pmap (\lam (u : NatTrans G G) => u.t x) iso.inv-right
+  }
+
+-- 4.2.16
+-- hPOV: see 4.2.2
+
+-- 4.2.17
+\record CatEquiv {A B : Precategory} (F : Functor A B) {
+  | F^-1 : Functor B A
+  | inv-left : functor-comp {A} {B} {A} F^-1 F ~= functor-id A  -- FIXME: why are implicit parameters necessary here?
+  | inv-right : functor-comp {B} {A} {B} F F^-1 ~= functor-id B
+}
+\func cat-equiv-inv {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) : CatEquiv G F \cowith
+  | inv-left => e.inv-right
+  | inv-right => e.inv-left
+
+-- 4.2.18
+-- some useful results concerning pointwise isomorphisms
+\func conjugate {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) : mor (G x) (G y) =>
+  Isomorphism.f {i y} o f o Isomorphism.f^-1 {i x}
+\func conjugate-id {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) (x : A) : conjugate F G i (ide (F x)) = id =>
+  (pmap (_ o)) (id-left _) *> Isomorphism.inv-right {i x}
+\func conjugate-o {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y z : A} (f : mor (F y) (F z)) (g : mor (F x) (F y)) : conjugate F G i (f o g) = conjugate F G i f o conjugate F G i g =>
+  -- Arend: this is where metas could come in handy
+  \let | companion => conjugate F G i
+       | ix : Isomorphism => i x | iy : Isomorphism => i y | iz : Isomorphism => i z
+       -- Arend: it would be really really nice to be able to write (i x).f, etc.
+  \in inv (
+    companion f o iy.f o g o ix.f^-1            ==< inv (o-assoc _ _ _) >==
+    (companion f o iy.f) o g o ix.f^-1          ==< pmap (`o (g o ix.f^-1)) (o-assoc _ _ _) >==
+    (iz.f o (f o iy.f^-1) o iy.f) o g o ix.f^-1 ==< pmap ((iz.f o __) o g o ix.f^-1) (o-assoc _ _ _) >==
+    (iz.f o f o iy.f^-1 o iy.f) o g o ix.f^-1   ==< pmap ((iz.f o f o __) o g o ix.f^-1) iy.inv-left >==
+    (iz.f o f o id) o g o ix.f^-1               ==< pmap ((iz.f o __) o g o ix.f^-1) (id-right _) >==
+    (iz.f o f) o g o ix.f^-1                    ==< o-assoc _ _ _ >==
+    iz.f o f o g o ix.f^-1                      ==< pmap (iz.f o) (inv (o-assoc _ _ _)) >==
+    iz.f o (f o g) o ix.f^-1 `qed
+  )
+\func conjugate->comm {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) : conjugate F G i f o Isomorphism.f {i x} = Isomorphism.f {i y} o f =>
+  \let | ix : Isomorphism => i x | iy : Isomorphism => i y
+  \in
+    (iy.f o f o ix.f^-1) o ix.f ==< o-assoc _ _ _ >==
+    iy.f o (f o ix.f^-1) o ix.f ==< pmap (iy.f o) (o-assoc _ _ _) >==
+    iy.f o f o ix.f^-1 o ix.f   ==< pmap (iy.f o f o __) (ix.inv-left) >==
+    iy.f o f o id               ==< pmap (iy.f o) (id-right _) >==
+    iy.f o f `qed
+\func comm->conjugate {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) (g : mor (G x) (G y)) (comm : Isomorphism.f {i y} o f = g o Isomorphism.f {i x}) : conjugate F G i f = g =>
+  \let | ix : Isomorphism => i x | iy : Isomorphism => i y
+  \in
+    iy.f o f o ix.f^-1   ==< inv (o-assoc _ _ _) >==
+    (iy.f o f) o ix.f^-1 ==< pmap (`o ix.f^-1) comm >==
+    (g o ix.f) o ix.f^-1 ==< o-assoc _ _ _ >==
+    g o ix.f o ix.f^-1   ==< pmap (g o) ix.inv-right >==
+    g o id               ==< id-right _ >==
+    g `qed
+\func conjugate-retract {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) : conjugate G F (\lam x => iso-inv (i x)) (conjugate F G i f) = f =>
+  \let | ix : Isomorphism => i x | iy : Isomorphism => i y
+  \in comm->conjugate G F (\lam x => iso-inv (i x)) _ _ (
+    iy.f^-1 o conjugate F G i f                    ==< pmap (iy.f^-1 o) (inv (id-right _)) >==
+    iy.f^-1 o conjugate F G i f o id               ==< pmap (iy.f^-1 o conjugate F G i f o __) (inv ix.inv-right) >==
+    iy.f^-1 o conjugate F G i f o ix.f o ix.f^-1   ==< pmap (iy.f^-1 o) (inv (o-assoc _ _ _)) >==
+    iy.f^-1 o (conjugate F G i f o ix.f) o ix.f^-1 ==< pmap (iy.f^-1 o __ o ix.f^-1) (conjugate->comm F G i f) >==
+    iy.f^-1 o (iy.f o f) o ix.f^-1                 ==< pmap (iy.f^-1 o) (o-assoc _ _ _) >==
+    iy.f^-1 o iy.f o f o ix.f^-1                   ==< inv (o-assoc _ _ _) >==
+    (iy.f^-1 o iy.f) o f o ix.f^-1                 ==< pmap (__ o f o ix.f^-1) iy.inv-left >==
+    id o f o ix.f^-1                               ==< id-left _ >==
+    f o ix.f^-1 `qed
+  )
+\func isInjective-conjugate {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) (x y : A) : isInjective (conjugate F G i {x} {y}) =>
+  retract->isInjective (conjugate F G i) (conjugate G F (\lam x => iso-inv (i x))) (conjugate-retract F G i)
+
+
+-- hPOV: Lemma 4.2.18 is the same as half of Lemma 4.2.19 since our definition of essential surjectivity is constructive
+-- I also have to remark that this lemma is a bit far from "proving itself"
+\func FFES->CatEquiv {A B : Precategory} (F : Functor A B) (full : isFull F) (faithful : isFaithful F) (essSurj : isEssentiallySurjective F) : CatEquiv F =>
+  \let | j (y : B) : A => (essSurj y).1
+       | i (y : B) : Isomorphism => (essSurj y).2 | i' y => iso-inv (i y)
+       | companion => conjugate Function.id (F.F Function.o j) i'
+       | j-fmap {x y : B} (f : mor x y) : mor (j x) (j y) => (full _ _ (companion f)).1
+       | Fj=companion {x y : B} (f : mor x y) : F.fmap (j-fmap f) = companion f => (full _ _ (companion f)).2
+       | j* => \new Functor B A {
+         | F => j
+         | fmap => j-fmap
+         | fmap-id x => faithful (j x) (j x) _ _ (Fj=companion id *> (conjugate-id Function.id (F.F Function.o j) i' x) *> inv (F.fmap-id _))
+         | fmap-o {x} {y} {z} f g => faithful (j x) (j z) (j-fmap (f o g)) (j-fmap f o j-fmap g) (
+           F.fmap (j-fmap (f o g))               ==< Fj=companion _ >==
+           companion (f o g)                     ==< conjugate-o Function.id (F.F Function.o j) i' f g >==
+           companion f o companion g             ==< inv (pmap2 (o) (Fj=companion f) (Fj=companion g)) >==
+           F.fmap (j-fmap f) o F.fmap (j-fmap g) ==< inv (F.fmap-o _ _) >==
+           F.fmap (j-fmap f o j-fmap g) `qed
+         )
+       }
+       | Fj*->id => \new NatTrans (functor-comp F j*) (functor-id B) {
+         | t y => Isomorphism.f {i y}
+         | natural {x} {y} f =>
+           \let | ix : Isomorphism => i x | iy : Isomorphism => i y
+           \in inv (
+             iy.f o F.fmap (j-fmap f)                                        ==< pmap (iy.f o) (Fj=companion f) >==
+             iy.f o companion f                                              ==< inv (conjugate->comm (F.F Function.o j) Function.id i (companion f)) >==
+             conjugate (F.F Function.o j) Function.id i (companion f) o ix.f ==< pmap (`o ix.f) (conjugate-retract Function.id (F.F Function.o j) i' f) >==
+             f o ix.f `qed
+           )
+       }
+       | k (x : A) : mor (j (F.F x)) x => (full (j (F.F x)) x (Isomorphism.f {i (F.F x)})).1
+       | k' (x : A) : mor x (j (F.F x)) => (full x (j (F.F x)) (Isomorphism.f^-1 {i (F.F x)})).1
+       | Fk=iF (x : A) : F.fmap (k x) = Isomorphism.f {i (F.F x)} => (full _ _ (Isomorphism.f {i (F.F x)})).2
+       | Fk'=i'F (x : A) : F.fmap (k' x) = Isomorphism.f^-1 {i (F.F x)} => (full _ _ (Isomorphism.f^-1 {i (F.F x)})).2
+       | k-isIso (x : A) : isIsomorphism (k x) =>
+         \let iFx : Isomorphism => i (F.F x)
+         \in \new Isomorphism _ _ (k x) {
+           | f^-1 => k' x
+           | inv-left => faithful _ _ (k' x o k x) id (
+             F.fmap (k' x o k x)          ==< F.fmap-o _ _ >==
+             F.fmap (k' x) o F.fmap (k x) ==< pmap2 (o) (Fk'=i'F x) (Fk=iF x) >==
+             iFx.f^-1 o iFx.f             ==< iFx.inv-left >==
+             id                           ==< inv (F.fmap-id _) >==
+             F.fmap id `qed
+           )
+           | inv-right => faithful _ _ (k x o k' x) id (
+             F.fmap (k x o k' x)          ==< F.fmap-o _ _ >==
+             F.fmap (k x) o F.fmap (k' x) ==< pmap2 (o) (Fk=iF x) (Fk'=i'F x) >==
+             iFx.f o iFx.f^-1             ==< iFx.inv-right >==
+             id                           ==< inv (F.fmap-id _) >==
+             F.fmap id `qed
+           )
+         }
+       | j*F->id => \new NatTrans (functor-comp j* F) (functor-id A) {
+         | t x => k x
+         | natural {x} {y} f =>
+           \let | iFx : Isomorphism => i (F.F x) | iFy : Isomorphism => i (F.F y)
+           \in faithful (j (F.F x)) y (f o k x) (k y o j-fmap (F.fmap f)) (
+             F.fmap (f o k x)                          ==< F.fmap-o _ _ >==
+             F.fmap f o F.fmap (k x)                   ==< pmap (F.fmap f o) (Fk=iF x) >==
+             F.fmap f o iFx.f                          ==< Fj*->id.natural (F.fmap f) >==
+             iFy.f o F.fmap (j-fmap (F.fmap f))        ==< pmap (`o F.fmap (j-fmap (F.fmap f))) (inv (Fk=iF y)) >==
+             F.fmap (k y) o F.fmap (j-fmap (F.fmap f)) ==< inv (F.fmap-o _ _) >==
+             F.fmap (k y o j-fmap (F.fmap f)) `qed
+           )
+       }
+  \in \new CatEquiv F {
+    | F^-1 => j*
+    | inv-left => pointwise->Isomorphism j*F->id k-isIso
+    | inv-right => pointwise->Isomorphism Fj*->id (\lam y => i y) -- Arend: replace this with `i` results in a type mismatch, which doesn't seem reasonable
+  }
+
+-- 4.2.19
+\func CatEquiv->Faithful_retract {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) (x y : A) (f : mor x y) :
+    conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left) (G.fmap (F.fmap f)) = f =>
+  comm->conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left) (G.fmap (F.fmap f)) f (inv (NatTrans.natural {e.inv-left.f} f))
+\func CatEquiv->Faithful {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) : isFaithful F =>
+  \lam x y => retract->isInjective F.fmap (\lam f' => conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left) (G.fmap f')) (CatEquiv->Faithful_retract F e.F^-1 e x y)
+\func CatEquiv->Full {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) : isFull F =>
+  \lam x y f' =>
+  \let | companion => conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left)
+       | f => companion (G.fmap f')
+       | p : companion (G.fmap (F.fmap f)) = f => CatEquiv->Faithful_retract F G e x y f
+       | q : G.fmap (F.fmap f) = G.fmap f' => isInjective-conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left) _ _ (G.fmap (F.fmap f)) (G.fmap f') p
+  \in (f, CatEquiv->Faithful G F (cat-equiv-inv F G e) _ _ (F.fmap f) f' q)
+\func CatEquiv->EssentiallySurjective {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) : isEssentiallySurjective F =>
+  \lam y => (G.F y, Isomorphism->pointwise e.inv-right y)
+
+-- 4.2.20
+\func ProductCategory (A B : Precategory) : Precategory (\Sigma A B) \cowith
+  | mor x y => \Sigma (mor x.1 y.1) (mor x.2 y.2)
+  | ide x => (id, id)
+  | o f g => (f.1 o g.1, f.2 o g.2)
+  | id-left f => path (\lam i => ((id-left f.1) @ i, (id-left f.2) @ i))
+  | id-right f => path (\lam i => ((id-right f.1) @ i, (id-right f.2) @ i))
+  | o-assoc f g h => path (\lam i => ((o-assoc f.1 g.1 h.1) @ i, (o-assoc f.2 g.2 h.2) @ i))

@@ -9,4 +9,6 @@ Follow the [naming convention](https://github.com/arend-lang/arend-contrib/blob/
 Comments
 ===
 
-Each tag in Stacks project should be discussed.  Use comments to mark corresponding parts in the source.  If some items are not applicable (e.g., automatic in the type-theoretic setting), explain why no code is needed in comments.  If the formalization is notably different from the set-theoretic setting, explain how hPOV simplifies or complicates things with comments starting with "hPOV:".
+Each tag in Stacks project should be discussed.  Use comments to mark corresponding parts in the source.  If some items are not applicable (e.g., automatic in the type-theoretic setting), explain why no code is needed in comments.
+
+If the formalization is notably different from the set-theoretic setting, explain how hPOV simplifies or complicates things with comments starting with "hPOV:".  We currently do not distinguish the more precise cause (constructivity, infinite hierarchy of universes, or the homotopy interpretation of path types).
