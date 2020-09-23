@@ -5,7 +5,7 @@
 \import Paths
 \import src.Foundation.Set
 
--- 4.2.1
+-- tag(0014)
 \class Precategory (A : \Type) {
   | mor : A -> A -> \Set
   | ide (x : A) : mor x x
@@ -16,7 +16,7 @@
 }
 \func id {C : Precategory} {x : C} => ide x
 
--- 4.2.2
+-- tag(0015)
 -- hPOV: the "size" issue disappears due to the infinite hierarchy of p-levels
 \instance Precategory-Set : Precategory \Set
   | mor A B => A -> B
@@ -25,10 +25,12 @@
   | id-left _ => idp
   | id-right _ => idp
   | o-assoc _ _ _ => idp
+-- TODO: finish the list of examples
 
--- 4.2.3 is implicit in the definition
+-- tag(0016)
+-- implicit in the definition @tag(0014)
 
--- 4.2.4
+-- tag(0017)
 \record Isomorphism {C : Precategory} (x y : C) (f : mor x y) {
   | f^-1 : mor y x
   \property inv-left : f^-1 o f = id
@@ -60,11 +62,11 @@
 \class Category \extends Precategory
   | Iso->eq {x y : A} : x ~= y -> x = y
 
--- 4.2.5
+-- tag(0018)
 \class Groupoid \extends Precategory
   | isIso {x y : A} (f : mor x y) : isIsomorphism f
 
--- 4.2.6
+-- tag(0019)
 -- hPOV: this can be used as an alternative definition of groups; one might even argue that this is the more natural one
 \class Group' \extends Groupoid
   | A => \Sigma
@@ -92,7 +94,7 @@
   | inverse-right x => Isomorphism.inv-right {isIso x}
 -- hPOV: one may proceed to show that in fact Group = Group' with univalence
 
--- 4.2.7
+-- tag(001A)
 \func DiscreteCategory (A : \Set) : Precategory A \cowith
   | mor x y => x = y
   | ide _ => idp
@@ -101,7 +103,7 @@
   | id-right => idp_*>
   | o-assoc p q r => inv (*>-assoc r q p)
 
--- 4.2.8
+-- tag(001B)
 \class Functor (A B : Precategory) (\classifying F : A -> B)
   | fmap {x y : A} (f : mor x y) : mor (F x) (F y)
   | fmap-id (x : A) : fmap (ide x) = id
@@ -120,22 +122,22 @@
 }
 
 
--- 4.2.9
+-- tag(001C)
 \func isFaithful {A B : Precategory} (F : Functor A B) : \Prop => \Pi (x y : A) -> isInjective (F.fmap {x} {y})
 \func isFull {A B : Precategory} (F : Functor A B) : \Set => \Pi (x y : A) -> isSurjective (F.fmap {x} {y})
 \func isEssentiallySurjective {A B : Precategory} (F : Functor A B) => \Pi (y : B) -> \Sigma (x : A) (F.F x ~= y)
 
--- 4.2.10
+-- tag(001D)
 -- TODO: these require a definition for subsets (and they look boring), leave them for now
 
--- 4.2.11
+-- tag(001E)
 -- hPOV: this becomes a claim about p-levels, which is automatically inferred by Arend
 
--- 4.2.12
+-- tag(001F)
 -- TODO: define group homomorphisms in the usual way and show the two definitions coincide
 \func GroupHom' (G H : Group') => Functor G H
 
--- 4.2.13
+-- tag(001G)
 -- commutative triangle in a precategory
 \record CommTri {C : Precategory} (s m t : C) {
   | f : mor m t
@@ -191,7 +193,7 @@
   | fmap-id _ => idp
   | fmap-o _ _ => idp
 
--- 4.2.14
+-- tag(001H)
 \func commtri-f-id {C : Precategory} {s t : C} (g : mor s t) : CommTri s t t id g g \cowith
   | comm => id-left g
 \func commtri-f-comp {C : Precategory} {l m r u : C} {p : mor u m} (c : CommTri u m r { | g => p } ) (c' : CommTri u l m { | h => p }) : CommTri u l r \cowith
@@ -242,7 +244,7 @@
   | fmap-id _ => idp
   | fmap-o _ _ => idp
 
--- 4.2.15
+-- tag(001I)
 \class NatTrans {A B : Precategory} (F G : Functor A B) (\classifying t : \Pi (x : A) -> mor (F.F x) (G.F x)) {
   \property natural {x y : A} (f : mor x y) : G.fmap f o t x = t y o F.fmap f
 } \where {
@@ -312,10 +314,10 @@
     | inv-right => pmap (\lam (u : NatTrans G G) => u.t x) iso.inv-right
   }
 
--- 4.2.16
--- hPOV: see 4.2.2
+-- tag(02C2)
+-- hPOV: see @tag(0015)
 
--- 4.2.17
+-- tag(001J)
 \record CatEquiv {A B : Precategory} (F : Functor A B) {
   | F^-1 : Functor B A
   | inv-left : functor-comp {A} {B} {A} F^-1 F ~= functor-id A  -- FIXME: why are implicit parameters necessary here?
@@ -325,7 +327,7 @@
   | inv-left => e.inv-right
   | inv-right => e.inv-left
 
--- 4.2.18
+-- tag(05SG)
 -- some useful results concerning pointwise isomorphisms
 \func conjugate {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) : mor (G x) (G y) =>
   Isomorphism.f {i y} o f o Isomorphism.f^-1 {i x}
@@ -380,7 +382,7 @@
   retract->isInjective (conjugate F G i) (conjugate G F (\lam x => iso-inv (i x))) (conjugate-retract F G i)
 
 
--- hPOV: Lemma 4.2.18 is the same as half of Lemma 4.2.19 since our definition of essential surjectivity is constructive
+-- hPOV: @tag(05SG) is the same as half of @tag(02C3) since our definition of essential surjectivity is constructive
 -- I also have to remark that this lemma is a bit far from "proving itself"
 \func FFES->CatEquiv {A B : Precategory} (F : Functor A B) (full : isFull F) (faithful : isFaithful F) (essSurj : isEssentiallySurjective F) : CatEquiv F =>
   \let | j (y : B) : A => (essSurj y).1
@@ -453,7 +455,7 @@
     | inv-right => pointwise->Isomorphism Fj*->id (\lam y => i y) -- Arend: replace this with `i` results in a type mismatch, which doesn't seem reasonable
   }
 
--- 4.2.19
+-- tag(02C3)
 \func CatEquiv->Faithful_retract {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) (x y : A) (f : mor x y) :
     conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left) (G.fmap (F.fmap f)) = f =>
   comm->conjugate (G.F Function.o F.F) Function.id (Isomorphism->pointwise e.inv-left) (G.fmap (F.fmap f)) f (inv (NatTrans.natural {e.inv-left.f} f))
@@ -469,7 +471,7 @@
 \func CatEquiv->EssentiallySurjective {A B : Precategory} (F : Functor A B) (G : Functor B A) (e : CatEquiv F G) : isEssentiallySurjective F =>
   \lam y => (G.F y, Isomorphism->pointwise e.inv-right y)
 
--- 4.2.20
+-- tag(001K)
 \func ProductCategory (A B : Precategory) : Precategory (\Sigma A B) \cowith
   | mor x y => \Sigma (mor x.1 y.1) (mor x.2 y.2)
   | ide x => (id, id)
