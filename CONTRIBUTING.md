@@ -1,6 +1,6 @@
 Overview
 ===
-Formalize each and every tag in Stacks project.  Each section should be in a separate file.  For example, Section 4.2 with tag 0013 should be named `S4_2-0013.ard`.  The stacks project is mostly self-contained, but if some preliminary is required (e.g., basic facts about groups), put the file under the `Foundation` directory.
+Formalize each and every tag in Stacks project.  Each section should be in a separate file.  For example, Section 4.2 with tag 0013 should be named `S4_2_0013.ard`.  The stacks project is mostly self-contained, but if some preliminary is required (e.g., basic facts about groups), put the file under the `Foundation` directory.
 
 Naming convention
 ===
