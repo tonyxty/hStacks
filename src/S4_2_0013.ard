@@ -276,9 +276,9 @@
   | mor F G => NatTrans F G
   | ide F => nat-trans-id F
   | o s t => nat-trans-comp s t
-  | id-left s => NatTrans.equals' (\lam x => id-left (NatTrans.t {s} x))
-  | id-right s => NatTrans.equals' (\lam x => id-right (NatTrans.t {s} x))
-  | o-assoc s t u => NatTrans.equals' (\lam x => o-assoc (NatTrans.t {s} x) (NatTrans.t {t} x) (NatTrans.t {u} x))
+  | id-left s => NatTrans.equals' _ _ (\lam x => id-left (NatTrans.t {s} x))
+  | id-right s => NatTrans.equals' _ _ (\lam x => id-right (NatTrans.t {s} x))
+  | o-assoc s t u => NatTrans.equals' _ _ (\lam x => o-assoc (NatTrans.t {s} x) (NatTrans.t {t} x) (NatTrans.t {u} x))
 
 -- the following lemma is very useful in dealing with isomorphisms between functors:
 -- a natural transformation is an isomorphism in this precategory iff it is a pointwise isomorphism
