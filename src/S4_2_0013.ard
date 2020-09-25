@@ -255,7 +255,7 @@
       | natural f => (pathInProp (\lam j => G.fmap f o (e @ j) _ = (e @ j) _ o F.fmap f) (s.natural f) (t.natural f)) @ i
     })
   -- this is more useful than above
-  \func equals' {A B : Precategory} {F G : Functor A B} {s t : NatTrans F G} (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
+  \func equals' {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
     equals s t (funExt (\lam x => mor (F.F x) (G.F x)) s.t t.t e)
 }
 \func nat-trans-id {A B : Precategory} (F : Functor A B) : NatTrans F F \cowith
@@ -303,8 +303,8 @@
   }
   \in \new Isomorphism F G s {
     | f^-1 => t
-    | inv-left => NatTrans.equals' (\lam x => Isomorphism.inv-left {i x})
-    | inv-right => NatTrans.equals' (\lam x => Isomorphism.inv-right {i x})
+    | inv-left => NatTrans.equals' (nat-trans-comp t s) id (\lam x => Isomorphism.inv-left {i x})
+    | inv-right => NatTrans.equals' (nat-trans-comp s t) id (\lam x => Isomorphism.inv-right {i x})
   }
 \func Isomorphism->pointwise {A B : Precategory} {F G : Functor A B} (iso : Isomorphism F G) (x : A) : isIsomorphism (NatTrans.t {iso.f} x) =>
   \let s : NatTrans F G => iso.f | t : NatTrans G F => iso.f^-1
