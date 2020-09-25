@@ -1,0 +1,34 @@
+\import Paths
+\import src.S4_2_0013
+
+-- tag(001M)
+\func opp (C : Precategory) : Precategory \cowith
+  | A => C.A
+  | mor x y => mor y x
+  | ide x => id
+  | o f g => g o f
+  | id-left f => id-right f
+  | id-right f => id-left f
+  | o-assoc f g h => inv (o-assoc h g f)
+
+-- tag(001N)
+\func ContravariantFunctor (C S : Precategory) : Precategory => Precategory-Functor {C `opp} {S}
+
+-- tag(02X6)
+\func Presheaf (C : Precategory) : Precategory => ContravariantFunctor C Precategory-Set
+
+-- tag(001O)
+\func functor-of-points \alias Yoneda {C : Precategory} (u : C) : Presheaf C => \new Functor _ _ {
+  | F x => mor x u
+  | fmap f => `o f
+  | fmap-id x => path (\lam i p => id-right p @ i)
+  | fmap-o f g => path (\lam i p => inv (o-assoc p g f) @ i)
+}
+\func mor->rep-psh-nat-trans {C : Precategory} {u v : C} (p : mor u v) : NatTrans (Yoneda u) (Yoneda v) \cowith
+  | t x => p o
+  | natural f => path (\lam i g => o-assoc p g f @ i)
+\func YonedaEmbedding (C : Precategory) : Functor C (Presheaf C) \cowith
+  | F => Yoneda
+  | fmap => mor->rep-psh-nat-trans
+  | fmap-id x => NatTrans.equals' (mor->rep-psh-nat-trans id) id (\lam _ => path (\lam i f => id-left f @ i))
+  | fmap-o {x} {y} {z} f g => {?}
