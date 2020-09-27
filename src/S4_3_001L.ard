@@ -36,4 +36,4 @@
          | gnt : NatTrans (Yoneda x) (Yoneda y) => mor->rep-psh-nat-trans g
          | fgnt : NatTrans (Yoneda x) (Yoneda z) => mor->rep-psh-nat-trans (f o g)
          | ntfg : NatTrans (Yoneda x) (Yoneda z) => nat-trans-comp' (Yoneda x) (Yoneda y) (Yoneda z) fnt gnt
-    \in NatTrans.equalsExt' (Yoneda x) (Yoneda z) fgnt ntfg (\lam t => {?})
+    \in NatTrans.equalsExt' (Yoneda x) (Yoneda z) fgnt ntfg (\lam _ => path (\lam i p => o-assoc f g p @ i))
