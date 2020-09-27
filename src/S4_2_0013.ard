@@ -250,22 +250,24 @@
 } \where {
   -- Arend: (feature request) infer that properties are "irrelavant" when proving equality
   \func equals {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : s.t = t.t) : s = t =>
+    equals' F G s t e
+  \func equals' {A B : Precategory} (F G : Functor A B) (s t : NatTrans F G) (e : s.t = t.t) =>
     path (\lam i => \new NatTrans F G {
       | t => e @ i
       | natural f => pathInProp (\lam j => G.fmap f o (e @ j) _ = (e @ j) _ o F.fmap f) (s.natural f) (t.natural f) @ i
     })
-  \func equals' {A B : Precategory} (F G : Functor A B) (s t : NatTrans F G) (e : s.t = t.t) =>
-    equals {A} {B} {F} {G} s t e
   -- this is more useful than above
   \func equalsExt {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
-    equals s t (funExt (\lam x => mor (F.F x) (G.F x)) s.t t.t e)
+    equalsExt' F G s t e
   \func equalsExt' {A B : Precategory} (F G : Functor A B) (s t : NatTrans F G) (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
-    equalsExt {A} {B} {F} {G} s t e
+    equals s t (funExt (\lam x => mor (F.F x) (G.F x)) s.t t.t e)
 }
 \func nat-trans-id {A B : Precategory} (F : Functor A B) : NatTrans F F \cowith
   | t x => id
   | natural f => id-right (fmap f) *> inv (id-left (fmap f))
-\func nat-trans-comp {A B : Precategory} {E F G : Functor A B} (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G \cowith
+\func nat-trans-comp {A B : Precategory} {E F G : Functor A B} (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G =>
+  nat-trans-comp' E F G t s
+\func nat-trans-comp' {A B : Precategory} (E F G : Functor A B) (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G \cowith
   | t x => t.t x o s.t x
   | natural f =>
     -- the following paragraph looks evil

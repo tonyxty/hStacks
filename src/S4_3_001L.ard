@@ -21,14 +21,12 @@
 \func functor-of-points \alias Yoneda {C : Precategory} (u : C) : Presheaf C => \new Functor _ _ {
   | F x => mor x u
   | fmap f => `o f
-  | fmap-id x => path (\lam i => id-right __ @ i)
+  | fmap-id x => path (\lam i p => id-right p @ i)
   | fmap-o f g => path (\lam i p => inv (o-assoc p g f) @ i)
 }
 \func mor->rep-psh-nat-trans {C : Precategory} {u v : C} (p : mor u v) : NatTrans (Yoneda u) (Yoneda v) \cowith
   | t x => p o
   | natural f => path (\lam i g => o-assoc p g f @ i)
-\func nat-trans-comp' {A B : Precategory} (E F G : Functor A B) (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G =>
-  nat-trans-comp {A} {B} {E} {F} {G} t s
 \func YonedaEmbedding (C : Precategory) : Functor C (Presheaf C) \cowith
   | F => Yoneda
   | fmap => mor->rep-psh-nat-trans
