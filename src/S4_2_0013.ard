@@ -3,7 +3,7 @@
 \import HLevel
 \import Homotopy.Truncation
 \import Paths
-\import Foundation.Set
+\import src.Foundation.Set
 
 -- tag(0014)
 \class Precategory (A : \Type) {

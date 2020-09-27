@@ -1,4 +1,3 @@
-\import Logic.Meta
 \import Paths
 
 -- hPOV: this definition is only useful for Sets; for types of higher h-level we need to use embeddings, i.e.,
@@ -8,4 +7,4 @@
   \lam x x' p => inv (r x) *> pmap g p *> r x'
 -- hPOV: this is the constructive version of surjectivity, "every fiber is inhabited"
 -- NOTE: this usage is different from HoTTbook, where "surjective" means "every fiber is merely inhabited"
-\func isSurjective {A B : \Set} (f : A -> B) : \Set => \Pi (y : B) -> ∃ (x : A) (f x = y)
+\func isSurjective {A B : \Set} (f : A -> B) : \Set => \Pi (y : B) -> \Sigma (x : A) (f x = y)

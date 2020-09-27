@@ -1,5 +1,5 @@
 \import Paths
-\import S4_2_0013
+\import src.S4_2_0013
 
 -- tag(001M)
 \func opp (C : Precategory) : Precategory \cowith
@@ -26,7 +26,7 @@
 }
 \func mor->rep-psh-nat-trans {C : Precategory} {u v : C} (p : mor u v) : NatTrans (Yoneda u) (Yoneda v) \cowith
   | t x => p o
-  | natural f => path (\lam i => o-assoc p __ f @ i)
+  | natural f => path (\lam i g => o-assoc p g f @ i)
 \func nat-trans-comp' {A B : Precategory} (E F G : Functor A B) (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G =>
   nat-trans-comp {A} {B} {E} {F} {G} t s
 \func YonedaEmbedding (C : Precategory) : Functor C (Presheaf C) \cowith
