@@ -30,5 +30,10 @@
 \func YonedaEmbedding (C : Precategory) : Functor C (Presheaf C) \cowith
   | F => Yoneda
   | fmap => mor->rep-psh-nat-trans
-  | fmap-id x => NatTrans.equals' (mor->rep-psh-nat-trans id) id (\lam _ => path (\lam i f => id-left f @ i))
-  | fmap-o {x} {y} {z} f g => {?}
+  | fmap-id x => NatTrans.equalsExt (mor->rep-psh-nat-trans id) id (\lam _ => path (\lam i f => id-left f @ i))
+  | fmap-o {x} {y} {z} f g =>
+    \let | fnt : NatTrans (Yoneda y) (Yoneda z) => mor->rep-psh-nat-trans f
+         | gnt : NatTrans (Yoneda x) (Yoneda y) => mor->rep-psh-nat-trans g
+         | fgnt : NatTrans (Yoneda x) (Yoneda z) => mor->rep-psh-nat-trans (f o g)
+         | ntfg : NatTrans (Yoneda x) (Yoneda z) => nat-trans-comp' (Yoneda x) (Yoneda y) (Yoneda z) fnt gnt
+    \in NatTrans.equalsExt' (Yoneda x) (Yoneda z) fgnt ntfg (\lam t => {?})

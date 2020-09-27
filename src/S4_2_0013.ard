@@ -250,18 +250,24 @@
 } \where {
   -- Arend: (feature request) infer that properties are "irrelavant" when proving equality
   \func equals {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : s.t = t.t) : s = t =>
+    equals' F G s t e
+  \func equals' {A B : Precategory} (F G : Functor A B) (s t : NatTrans F G) (e : s.t = t.t) =>
     path (\lam i => \new NatTrans F G {
       | t => e @ i
-      | natural f => (pathInProp (\lam j => G.fmap f o (e @ j) _ = (e @ j) _ o F.fmap f) (s.natural f) (t.natural f)) @ i
+      | natural f => pathInProp (\lam j => G.fmap f o (e @ j) _ = (e @ j) _ o F.fmap f) (s.natural f) (t.natural f) @ i
     })
   -- this is more useful than above
-  \func equals' {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
+  \func equalsExt {A B : Precategory} {F G : Functor A B} (s t : NatTrans F G) (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
+    equalsExt' F G s t e
+  \func equalsExt' {A B : Precategory} (F G : Functor A B) (s t : NatTrans F G) (e : \Pi (x : A) -> s.t x = t.t x) : s = t =>
     equals s t (funExt (\lam x => mor (F.F x) (G.F x)) s.t t.t e)
 }
 \func nat-trans-id {A B : Precategory} (F : Functor A B) : NatTrans F F \cowith
   | t x => id
   | natural f => id-right (fmap f) *> inv (id-left (fmap f))
-\func nat-trans-comp {A B : Precategory} {E F G : Functor A B} (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G \cowith
+\func nat-trans-comp {A B : Precategory} {E F G : Functor A B} (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G =>
+  nat-trans-comp' E F G t s
+\func nat-trans-comp' {A B : Precategory} (E F G : Functor A B) (t : NatTrans F G) (s : NatTrans E F) : NatTrans E G \cowith
   | t x => t.t x o s.t x
   | natural f =>
     -- the following paragraph looks evil
@@ -276,9 +282,9 @@
   | mor F G => NatTrans F G
   | ide F => nat-trans-id F
   | o s t => nat-trans-comp s t
-  | id-left s => NatTrans.equals' _ _ (\lam x => id-left (NatTrans.t {s} x))
-  | id-right s => NatTrans.equals' _ _ (\lam x => id-right (NatTrans.t {s} x))
-  | o-assoc s t u => NatTrans.equals' _ _ (\lam x => o-assoc (NatTrans.t {s} x) (NatTrans.t {t} x) (NatTrans.t {u} x))
+  | id-left s => NatTrans.equalsExt _ _ (\lam x => id-left (NatTrans.t {s} x))
+  | id-right s => NatTrans.equalsExt _ _ (\lam x => id-right (NatTrans.t {s} x))
+  | o-assoc s t u => NatTrans.equalsExt _ _ (\lam x => o-assoc (NatTrans.t {s} x) (NatTrans.t {t} x) (NatTrans.t {u} x))
 
 -- the following lemma is very useful in dealing with isomorphisms between functors:
 -- a natural transformation is an isomorphism in this precategory iff it is a pointwise isomorphism
@@ -303,8 +309,8 @@
   }
   \in \new Isomorphism F G s {
     | f^-1 => t
-    | inv-left => NatTrans.equals' (nat-trans-comp t s) id (\lam x => Isomorphism.inv-left {i x})
-    | inv-right => NatTrans.equals' (nat-trans-comp s t) id (\lam x => Isomorphism.inv-right {i x})
+    | inv-left => NatTrans.equalsExt (nat-trans-comp t s) id (\lam x => Isomorphism.inv-left {i x})
+    | inv-right => NatTrans.equalsExt (nat-trans-comp s t) id (\lam x => Isomorphism.inv-right {i x})
   }
 \func Isomorphism->pointwise {A B : Precategory} {F G : Functor A B} (iso : Isomorphism F G) (x : A) : isIsomorphism (NatTrans.t {iso.f} x) =>
   \let s : NatTrans F G => iso.f | t : NatTrans G F => iso.f^-1
