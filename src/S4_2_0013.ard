@@ -371,7 +371,7 @@
     g o ix.f o ix.f^-1   ==< pmap (g o) ix.inv-right >==
     g o id               ==< id-right _ >==
     g `qed
-\func conjugate-retract {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) : conjugate G F (\lam x => iso-inv (i x)) (conjugate F G i f) = f =>
+\func conjugate_retract {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) {x y : A} (f : mor (F x) (F y)) : conjugate G F (\lam x => iso-inv (i x)) (conjugate F G i f) = f =>
   \let | ix : Isomorphism => i x | iy : Isomorphism => i y
   \in comm->conjugate G F (\lam x => iso-inv (i x)) _ _ (
     iy.f^-1 o conjugate F G i f                    ==< pmap (iy.f^-1 o) (inv (id-right _)) >==
@@ -385,7 +385,7 @@
     f o ix.f^-1 `qed
   )
 \func isInjective-conjugate {A : Precategory} (F G : A -> A) (i : \Pi (x : A) -> F x ~= G x) (x y : A) : isInjective (conjugate F G i {x} {y}) =>
-  retract->isInjective (conjugate F G i) (conjugate G F (\lam x => iso-inv (i x))) (conjugate-retract F G i)
+  retract->isInjective (conjugate F G i) (conjugate G F (\lam x => iso-inv (i x))) (conjugate_retract F G i)
 
 
 -- hPOV: @tag(05SG) is the same as half of @tag(02C3) since our definition of essential surjectivity is constructive
@@ -415,7 +415,7 @@
            \in inv (
              iy.f o F.fmap (j-fmap f)                                        ==< pmap (iy.f o) (Fj=companion f) >==
              iy.f o companion f                                              ==< inv (conjugate->comm (F.F Function.o j) Function.id i (companion f)) >==
-             conjugate (F.F Function.o j) Function.id i (companion f) o ix.f ==< pmap (`o ix.f) (conjugate-retract Function.id (F.F Function.o j) i' f) >==
+             conjugate (F.F Function.o j) Function.id i (companion f) o ix.f ==< pmap (`o ix.f) (conjugate_retract Function.id (F.F Function.o j) i' f) >==
              f o ix.f `qed
            )
        }
