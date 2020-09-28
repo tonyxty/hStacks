@@ -1,4 +1,5 @@
 \import Paths
+\import src.Foundation.Set
 \import src.S4_2_0013
 
 -- tag(001M)
@@ -37,3 +38,24 @@
          | fgnt : NatTrans (Yoneda x) (Yoneda z) => mor->rep-psh-nat-trans (f o g)
          | ntfg : NatTrans (Yoneda x) (Yoneda z) => nat-trans-comp' (Yoneda x) (Yoneda y) (Yoneda z) fnt gnt
     \in NatTrans.equalsExt' (Yoneda x) (Yoneda z) fgnt ntfg (\lam _ => path (\lam i p => o-assoc f g p @ i))
+
+-- tag(001P)
+-- TODO: I'm running out of good, descriptive names here
+\func Yoneda-isFaithful_retract {C : Precategory} (x y : C) (f : mor x y) : NatTrans.t {Functor.fmap {YonedaEmbedding C} f} x id = f => id-right f
+\func Yoneda-isFaithful (C : Precategory) : isFaithful (YonedaEmbedding C) =>
+  \lam x y => retract->isInjective (Functor.fmap {YonedaEmbedding C}) (\lam (t : NatTrans (Yoneda x) (Yoneda y)) => t.t x id) (Yoneda-isFaithful_retract x y)
+\func Yoneda-isFull (C : Precategory) : isFull (YonedaEmbedding C) => \lam x y (t : NatTrans) =>
+  \let | f => t.t x id
+       | p z (g : mor z x) => path (\lam i => (t.natural g @ i) id) *> pmap (t.t z) (id-left g)
+  \in (f, NatTrans.equalsExt' (Yoneda x) (Yoneda y) _ _ (\lam z => path (\lam i g => p z g @ i)))
+\func Yoneda-lemma {C : Precategory} (F : Presheaf C) (u : C) (t : NatTrans (Yoneda u) F) : Functor.F {F} u => t.t u id
+\func Yoneda-lemma-inv {C : Precategory} (F : Presheaf C) (u : C) (k : Functor.F {F} u) : NatTrans (Yoneda u) F \cowith
+  | t _ f => Functor.fmap {F} f k
+  | natural f => path (\lam i g => ((inv (Functor.fmap-o {F} f g)) @ i) k)
+\func Yoneda-lemma_retract {C : Precategory} {F : Presheaf C} {u : C} (t : NatTrans (Yoneda u) F) : Yoneda-lemma-inv F u (Yoneda-lemma F u t) = t =>
+  NatTrans.equalsExt' (Yoneda u) F (Yoneda-lemma-inv F u (Yoneda-lemma F u t)) t (\lam x => path (\lam i f => (t.natural f @ i) id) *> path (\lam i f => t.t x (id-left f @ i)))
+\func Yoneda-lemma_section (C : Precategory) {F : Presheaf C} {u : C} (k : Functor.F {F} u) : Yoneda-lemma F u (Yoneda-lemma-inv F u k) = k =>
+  path (\lam i => (Functor.fmap-id {F} u @ i) k)
+
+-- tag(001Q)
+\func isRepresentable {C : Precategory} (F : Presheaf C) => \Sigma (u : C) (Yoneda u ~= F)
