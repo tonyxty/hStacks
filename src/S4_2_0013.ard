@@ -125,6 +125,8 @@
 -- tag(001C)
 \func isFaithful {A B : Precategory} (F : Functor A B) : \Prop => \Pi (x y : A) -> isInjective (F.fmap {x} {y})
 \func isFull {A B : Precategory} (F : Functor A B) : \Set => \Pi (x y : A) -> isSurjective (F.fmap {x} {y})
+-- hPOV: this is the constructive version of essential surjectivity, or "split essential surjectivity" in HoTTbook
+-- see the notes in the definition of "isSurjective" in Foundation/Set.ard
 \func isEssentiallySurjective {A B : Precategory} (F : Functor A B) => \Pi (y : B) -> \Sigma (x : A) (F.F x ~= y)
 
 -- tag(001D)

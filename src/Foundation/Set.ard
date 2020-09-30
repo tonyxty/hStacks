@@ -1,10 +1,11 @@
 \import Paths
 
--- hPOV: this definition is only useful for Sets; for types of higher h-level we need to use embeddings, i.e.,
--- maps that induces an equivalence on path types, instead.  see HoTTbook, Section 4.6
+-- hPOV: this definition is only useful for Sets; for types of higher h-level we need to use embeddings, i.e., maps that
+-- induces an equivalence on path types, instead.  see HoTTbook, Section 4.6
 \func isInjective {A B : \Set} (f : A -> B) : \Prop => \Pi (x x' : A) -> f x = f x' -> x = x'
 \func retract->isInjective {A B : \Set} (f : A -> B) (g : B -> A) (r : \Pi (x : A) -> g (f x) = x) : isInjective f =>
   \lam x x' p => inv (r x) *> pmap g p *> r x'
 -- hPOV: this is the constructive version of surjectivity, "every fiber is inhabited"
--- NOTE: this usage is different from HoTTbook, where "surjective" means "every fiber is merely inhabited"
+-- NOTE: this usage is different from HoTTbook, where "surjective" means "every fiber is merely inhabited," and the
+-- notion defined here is called "split surjective"
 \func isSurjective {A B : \Set} (f : A -> B) : \Set => \Pi (y : B) -> \Sigma (x : A) (f x = y)
