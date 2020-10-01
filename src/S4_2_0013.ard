@@ -1,4 +1,5 @@
 \import Algebra.Group
+\import Equiv
 \import Function ()
 \import HLevel
 \import Homotopy.Truncation
@@ -53,14 +54,22 @@
 }
 \func \infix 1 ~= {C : Precategory} (x y : C) : \Set => Isomorphism x y
 \func isIsomorphism {C : Precategory} {x y : C} (f : mor x y) : \Prop => Isomorphism x y f
+\func iso-id {C : Precategory} (x : C) : Isomorphism x x id \cowith
+  | f^-1 => id
+  | inv-left => id-left id
+  | inv-right => id-right id
 \func iso-inv {C : Precategory} {x y : C} (iso : Isomorphism x y) : Isomorphism y x \cowith
   | f => iso.f^-1
   | f^-1 => iso.f
   | inv-left => iso.inv-right
   | inv-right => iso.inv-left
 
+\func eq->Iso {C : Precategory} (x y : C) (p : x = y) : x ~= y \elim p
+  | idp => iso-id _
+
+-- hPOV: categories are more interesting from hPOV as there are non-trivial interactions between category theorry and equalities
 \class Category \extends Precategory
-  | Iso->eq {x y : A} : x ~= y -> x = y
+  | eq~=Iso (x y : A) : Equiv (eq->Iso x y)
 
 -- tag(0018)
 \class Groupoid \extends Precategory
