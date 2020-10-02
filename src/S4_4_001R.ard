@@ -1,0 +1,40 @@
+\import HLevel
+\import Paths
+\import src.S4_2_0013
+\import src.S4_3_001L
+
+-- tag(001S)
+-- alternatively, define general limits over functors first, and then construct binary products as a special case
+\record Product2 {C : Precategory} (x y : C) {
+  | u : C
+  | p : mor u x
+  | q : mor u y
+  | universal {t : C} (f : mor t x) (g : mor t y) : Contr (\Sigma (h : mor t u) (p o h = f) (q o h = g))
+}
+
+\func psh-product2 {C : Precategory} (P Q : Presheaf C) : Presheaf C => \new Functor _ _ {
+  | F x => \Sigma (Functor.F {P} x) (Functor.F {Q} x)
+  | fmap f t => (fmap {P} f t.1, fmap {Q} f t.2)
+  | fmap-id x => path (\lam i t => ((fmap-id {P} x @ i) t.1, (fmap-id {Q} x @ i) t.2))
+  | fmap-o f g => path (\lam i t => ((fmap-o {P} f g @ i) t.1, (fmap-o {Q} f g @ i) t.2))
+}
+
+\func Product2-Yoneda {C : Precategory} (x y : C) (p : Product2 x y) : Yoneda p.u ~= psh-product2 (Yoneda x) (Yoneda y) =>
+  pointwise->Isomorphism {C `opp} {Precategory-Set} (\new NatTrans _ _ {
+    | t w f => (p.p C.o {w} f, p.q C.o {w} f) -- Arend: FIXME: why is the implicit argument w needed here?
+    | natural f => path (\lam i g => (o-assoc p.p g f @ i, o-assoc p.q g f @ i))
+  }) (\lam w => \new Isomorphism {Precategory-Set} (mor w p.u) (\Sigma (mor w x) (mor w y)) _ {
+    | f^-1 (fg : \Sigma (mor w x) (mor w y)) => (Contr.center {p.universal fg.1 fg.2}).1
+    -- Arend: FIXME: omitting the type annotation for fg causes weird error
+    | inv-left => path (\lam i h => (Contr.contraction {p.universal (p.p o h) (p.q o h)} (h, idp, idp) @ i).1)
+    | inv-right => path (\lam i (fg : \Sigma (mor w x) (mor w y)) =>
+        \let c => Contr.center {p.universal fg.1 fg.2} \in (c.2 @ i, c.3 @ i))
+    -- Arend: FIXME: same problem above.  Arend seems to insist that fg has some functor type; moreover, the
+    -- type of fg is inferred correctly in the Arend Errors window when using a goal
+  })
+
+-- tag(001T)
+-- hPOV: as a general rule of thumb, for existence claims to work well with precategories one needs the constructive
+-- (untruncated) version since the existence is usually unique only up to isomorphism, while in categories the
+-- truncated version is expected to work thanks to uniqueness.
+\func hasProduct2 (C : Precategory) (x y : C) => Product2 x y
