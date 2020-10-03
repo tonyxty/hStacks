@@ -1,0 +1,22 @@
+\import Data.Or
+\import Function ()
+\import HLevel
+\import Paths
+\import src.S4_2_0013
+\import src.S4_3_001L
+\import src.S4_4_001R
+
+-- tag(04AO)
+-- coproducts are just products in the opposite category
+\func Coproduct2 {C : Precategory} (x y : C) => Product2 {C `opp} x y
+-- alternative definition
+\record Coproduct2' {C : Precategory} (x y : C) {
+  | u : C
+  | i : mor x u
+  | j : mor y u
+  | universal {t : C} (f : mor x t) (g : mor y t) : Contr (\Sigma (h : mor u t) (h o i = f) (h o j = g))
+}
+-- TODO: show that these two definitions are the same
+
+-- tag(04AP)
+\func hasCoproduct2 (C : Precategory) (x y : C) => Coproduct2 x y
