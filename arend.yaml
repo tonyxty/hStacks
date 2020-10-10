@@ -1,4 +1,4 @@
-langVersion: 1.4.1
+langVersion: 1.5
 sourcesDir: src
 binariesDir: .bin
-dependencies: [arend-lib-master]
+dependencies: [arend-lib]

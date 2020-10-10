@@ -1,7 +1,7 @@
 \import HLevel
 \import Paths
-\import src.S4_2_0013
-\import src.S4_3_001L
+\import S4_2_0013
+\import S4_3_001L
 
 -- tag(001S)
 -- alternatively, define general limits over functors first, and then construct binary products as a special case

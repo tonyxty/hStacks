@@ -1,6 +1,6 @@
 \import Paths
-\import src.Foundation.Set
-\import src.S4_2_0013
+\import Foundation.Set
+\import S4_2_0013
 
 -- tag(001M)
 \func opp (C : Precategory) : Precategory \cowith

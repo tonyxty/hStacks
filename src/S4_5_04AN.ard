@@ -2,9 +2,9 @@
 \import Function ()
 \import HLevel
 \import Paths
-\import src.S4_2_0013
-\import src.S4_3_001L
-\import src.S4_4_001R
+\import S4_2_0013
+\import S4_3_001L
+\import S4_4_001R
 
 -- tag(04AO)
 -- coproducts are just products in the opposite category
